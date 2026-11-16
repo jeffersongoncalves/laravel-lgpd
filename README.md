@@ -1,5 +1,7 @@
 # Laravel LGPD
 
+![Laravel LGPD](https://raw.githubusercontent.com/jeffersongoncalves/laravel-lgpd/main/art/jeffersongoncalves-laravel-lgpd.png)
+
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/jeffersongoncalves/laravel-lgpd.svg?style=flat-square)](https://packagist.org/packages/jeffersongoncalves/laravel-lgpd)
 [![Tests](https://img.shields.io/github/actions/workflow/status/jeffersongoncalves/laravel-lgpd/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/jeffersongoncalves/laravel-lgpd/actions/workflows/tests.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/jeffersongoncalves/laravel-lgpd.svg?style=flat-square)](https://packagist.org/packages/jeffersongoncalves/laravel-lgpd)
