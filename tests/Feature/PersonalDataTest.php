@@ -2,7 +2,9 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
+use JeffersonGoncalves\Lgpd\Events\PersonalDataAnonymized;
 use JeffersonGoncalves\Lgpd\Facades\Lgpd;
 use JeffersonGoncalves\Lgpd\Tests\Fixtures\Customer;
 
@@ -66,6 +68,27 @@ it('anonymizes each column with its strategy', function () {
         ->and($fresh->health_notes)->toBeNull()
         ->and($fresh->tax_id)->toBe('123.456.789-09')
         ->and($fresh->plan)->toBe('pro');
+});
+
+it('dispatches PersonalDataAnonymized with the changed columns', function () {
+    Event::fake([PersonalDataAnonymized::class]);
+    $customer = customer();
+
+    $customer->anonymizePersonalData();
+
+    Event::assertDispatched(PersonalDataAnonymized::class, fn (PersonalDataAnonymized $event) => $event->model->is($customer)
+        && $event->columns === ['name', 'email', 'health_notes']);
+});
+
+it('throws and dispatches nothing when an observer cancels the save', function () {
+    Event::fake([PersonalDataAnonymized::class]);
+    $customer = customer();
+    Customer::updating(fn () => false);
+
+    expect(fn () => $customer->anonymizePersonalData())->toThrow(RuntimeException::class, 'cancelled')
+        ->and(Customer::find($customer->id)->name)->toBe('Maria Silva');
+
+    Event::assertNotDispatched(PersonalDataAnonymized::class);
 });
 
 it('rejects models that do not implement the contract', function () {
