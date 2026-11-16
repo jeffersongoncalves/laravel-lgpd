@@ -80,6 +80,17 @@ it('dispatches PersonalDataAnonymized with the changed columns', function () {
         && $event->columns === ['name', 'email', 'health_notes']);
 });
 
+it('throws and dispatches nothing when an observer cancels the save', function () {
+    Event::fake([PersonalDataAnonymized::class]);
+    $customer = customer();
+    Customer::updating(fn () => false);
+
+    expect(fn () => $customer->anonymizePersonalData())->toThrow(RuntimeException::class, 'cancelled')
+        ->and(Customer::find($customer->id)->name)->toBe('Maria Silva');
+
+    Event::assertNotDispatched(PersonalDataAnonymized::class);
+});
+
 it('rejects models that do not implement the contract', function () {
     config()->set('lgpd.models', [stdClass::class]);
 

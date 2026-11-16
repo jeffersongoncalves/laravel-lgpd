@@ -7,6 +7,7 @@ use JeffersonGoncalves\Lgpd\Attributes\PersonalData;
 use JeffersonGoncalves\Lgpd\Enums\AnonymizeStrategy;
 use JeffersonGoncalves\Lgpd\Events\PersonalDataAnonymized;
 use ReflectionClass;
+use RuntimeException;
 
 /**
  * Default HasPersonalData implementation for Eloquent models, driven by #[PersonalData] attributes.
@@ -57,7 +58,10 @@ trait InteractsWithPersonalData
             $columns[] = $field->column;
         }
 
-        $this->save();
+        // An observer cancelling the save must not pass for a completed anonymization.
+        if ($this->save() === false) {
+            throw new RuntimeException('Anonymizing '.static::class.' ['.$this->getKey().'] was cancelled: save() returned false.');
+        }
 
         event(new PersonalDataAnonymized($this, $columns));
     }
