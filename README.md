@@ -68,6 +68,8 @@ $user->exportPersonalData();       // ['name' => ..., 'email' => ..., ...]
 $user->anonymizePersonalData();    // applies each strategy and saves
 ```
 
+`anonymizePersonalData()` fires `JeffersonGoncalves\Lgpd\Events\PersonalDataAnonymized` with the model and the columns it changed. Columns marked `Keep` are not in that list. [laravel-lgpd-retention](https://github.com/jeffersongoncalves/laravel-lgpd-retention) listens to it to write tombstones. With those, it can erase again any data that a backup restore brings back.
+
 ```bash
 php artisan lgpd:inventory          # table
 php artisan lgpd:inventory --json   # machine readable
