@@ -2,6 +2,7 @@
 
 namespace JeffersonGoncalves\Lgpd;
 
+use JeffersonGoncalves\Lgpd\Commands\InventoryCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -10,9 +11,13 @@ class LgpdServiceProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         $package
-            ->name('laravel-lgpd')
+            ->name('lgpd')
             ->hasConfigFile()
-            ->hasViews()
-            ->hasMigrations();
+            ->hasCommand(InventoryCommand::class);
+    }
+
+    public function packageRegistered(): void
+    {
+        $this->app->singleton(Lgpd::class);
     }
 }
