@@ -3,6 +3,7 @@
 namespace JeffersonGoncalves\Lgpd;
 
 use JeffersonGoncalves\Lgpd\Commands\InventoryCommand;
+use JeffersonGoncalves\Lgpd\Commands\KAnonymityCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -13,7 +14,7 @@ class LgpdServiceProvider extends PackageServiceProvider
         $package
             ->name('lgpd')
             ->hasConfigFile()
-            ->hasCommand(InventoryCommand::class);
+            ->hasCommands([InventoryCommand::class, KAnonymityCommand::class]);
     }
 
     public function packageRegistered(): void

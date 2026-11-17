@@ -75,6 +75,32 @@ php artisan lgpd:inventory          # table
 php artisan lgpd:inventory --json   # machine readable
 ```
 
+## k-anonymity
+
+Before you share or publish a dataset as anonymized (art. 12), check that nobody can be singled out by combining quasi-identifiers such as ZIP code, birth date and gender. A dataset is *k*-anonymous when every combination of those values is shared by at least *k* rows. It is *l*-diverse when each of those groups also holds at least *l* distinct sensitive values.
+
+```php
+use JeffersonGoncalves\Lgpd\Facades\Lgpd;
+use JeffersonGoncalves\Lgpd\Generalize;
+
+Lgpd::kAnonymity(Patient::class, [
+    'zip' => Generalize::prefix(5),         // 01310-100 → 01310
+    'birth_date' => Generalize::date('Y'),  // 1990-03-01 → 1990
+    'age' => Generalize::range(10),         // 34 → 30-39
+    'gender',                               // as stored
+], k: 5, sensitive: 'diagnosis');
+
+// ['rows' => 1200, 'groups' => 87, 'k' => 3, 'rows_below_k' => 14, 'l' => 1]
+```
+
+`k` is the smallest group, `rows_below_k` counts the rows you still need to generalize further or suppress, and `l` is the smallest number of distinct sensitive values in a group. It accepts a model class or a query builder. Values are read through the model, so casts apply. The generalizers are plain closures, so you can also use them to build the dataset you export.
+
+```bash
+php artisan lgpd:k-anonymity "App\Models\Patient" zip birth_date --k=5 --sensitive=diagnosis
+```
+
+The command fails (exit code 1) when the data is below the target *k*, so it can run in CI or before a scheduled export. It scans every row, so run it off-peak on big tables.
+
 ## Testing
 
 ```bash
