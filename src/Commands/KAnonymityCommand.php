@@ -4,6 +4,7 @@ namespace JeffersonGoncalves\Lgpd\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
 use JeffersonGoncalves\Lgpd\Lgpd;
 
 class KAnonymityCommand extends Command
@@ -26,9 +27,23 @@ class KAnonymityCommand extends Command
             return self::FAILURE;
         }
 
-        $k = (int) $this->option('k');
+        $k = filter_var($this->option('k'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        if ($k === false) {
+            $this->error('--k must be a positive integer.');
+
+            return self::FAILURE;
+        }
+
         $sensitive = $this->option('sensitive');
-        $result = $lgpd->kAnonymity($model, (array) $this->argument('columns'), $k, is_string($sensitive) ? $sensitive : null);
+
+        try {
+            $result = $lgpd->kAnonymity($model, (array) $this->argument('columns'), $k, is_string($sensitive) ? $sensitive : null);
+        } catch (InvalidArgumentException $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->table(array_keys($result), [array_map(fn (?int $value): string => $value === null ? '-' : (string) $value, $result)]);
 

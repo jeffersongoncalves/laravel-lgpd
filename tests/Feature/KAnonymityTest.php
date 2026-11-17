@@ -59,6 +59,22 @@ it('generalizes values', function () {
         ->and(Generalize::date()(null))->toBeNull();
 });
 
+it('rejects columns the rows do not have', function () {
+    expect(fn () => Lgpd::kAnonymity(Patient::query()->select('id'), ['zip']))->toThrow(InvalidArgumentException::class, 'Column [zip]')
+        ->and(fn () => Lgpd::kAnonymity(Patient::class, ['zip'], sensitive: 'diagnose'))->toThrow(InvalidArgumentException::class, 'Column [diagnose]')
+        ->and(fn () => Lgpd::kAnonymity(Patient::class, ['zip'], k: 0))->toThrow(InvalidArgumentException::class);
+});
+
+it('validates the command input', function (string $k) {
+    expect(Artisan::call('lgpd:k-anonymity', ['model' => Patient::class, 'columns' => ['zip'], '--k' => $k]))->toBe(1)
+        ->and(Artisan::output())->toContain('--k must be a positive integer.');
+})->with(['', 'abc', '0', '-2']);
+
+it('fails the command on a misspelled column', function () {
+    expect(Artisan::call('lgpd:k-anonymity', ['model' => Patient::class, 'columns' => ['zipcode']]))->toBe(1)
+        ->and(Artisan::output())->toContain('Column [zipcode] is not available');
+});
+
 it('fails the command below the target k', function () {
     expect(Artisan::call('lgpd:k-anonymity', ['model' => Patient::class, 'columns' => ['zip'], '--k' => 2]))->toBe(1)
         ->and(Artisan::output())->toContain('4 row(s) sit in groups smaller than k=2');

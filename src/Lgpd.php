@@ -63,6 +63,10 @@ class Lgpd
      */
     public function kAnonymity(string|Builder $source, array $quasiIdentifiers, int $k = 5, ?string $sensitive = null): array
     {
+        if ($k < 1) {
+            throw new InvalidArgumentException("k must be at least 1, got {$k}.");
+        }
+
         $generalizers = [];
 
         foreach ($quasiIdentifiers as $column => $generalizer) {
@@ -76,7 +80,20 @@ class Lgpd
         $counts = [];
         $values = [];
 
+        $checked = false;
+
         foreach ((is_string($source) ? $source::query() : $source)->cursor() as $row) {
+            if (! $checked) {
+                // A misspelled or unselected column reads as null and would group every row together.
+                foreach ([...array_keys($generalizers), ...($sensitive === null ? [] : [$sensitive])] as $column) {
+                    if (! array_key_exists($column, $row->getAttributes()) && ! $row->hasGetMutator($column) && ! $row->hasAttributeMutator($column)) {
+                        throw new InvalidArgumentException("Column [{$column}] is not available on ".$row::class.'.');
+                    }
+                }
+
+                $checked = true;
+            }
+
             $key = serialize(array_map(
                 fn (string $column): mixed => ($generalizers[$column] ?? fn (mixed $value): mixed => $value)($row->getAttribute($column)),
                 array_keys($generalizers),
