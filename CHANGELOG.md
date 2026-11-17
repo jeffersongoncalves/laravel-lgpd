@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.0 - 2026-11-16
+
+- `Lgpd::kAnonymity($source, $quasiIdentifiers, k: 5, sensitive: null)`: measures k-anonymity over quasi-identifier columns and, with a sensitive column, l-diversity. Returns rows, groups, k, rows_below_k and l. Values go through the model, so casts apply; unavailable columns are rejected.
+- `Generalize::prefix()`, `range()` and `date()`: closures that coarsen quasi-identifiers (ZIP prefix, number buckets, year/month).
+- `php artisan lgpd:k-anonymity {model} {columns*} --k=5 --sensitive=`: exits 1 below the target k, for CI or before an export.
+
 ## 1.1.0 - 2026-11-16
 
 - `anonymizePersonalData()` dispatches `PersonalDataAnonymized($model, $columns)` after saving, with the columns it changed (`Keep` columns skipped). laravel-lgpd-retention 1.1 uses it to tombstone DSAR erasures.
